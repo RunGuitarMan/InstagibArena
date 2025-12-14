@@ -10,19 +10,17 @@ public class GameBootstrap : MonoBehaviour
     public int enemyCount = 5;
     public float enemyAccuracy = 0.08f;
     public bool showMainMenu = true;
-
-    [Header("Player Settings")]
-    public float playerSpeed = 12f;
-    public float mouseSensitivity = 2f;
-
-    [Header("Arena Settings")]
-    public float arenaSize = 100f;
-    public int pillars = 12;
-    public int platforms = 8;
+    public bool isGameScene = true; // Set to false if this is the menu scene
 
     void Awake()
     {
-        InitializeGame();
+        // Apply video settings
+        GameSettings.Instance.ApplyVideoSettings();
+
+        if (isGameScene)
+        {
+            InitializeGame();
+        }
     }
 
     void InitializeGame()
@@ -31,16 +29,16 @@ public class GameBootstrap : MonoBehaviour
         CreateGameManager();
         CreateSpawnManager();
 
-        // Generate arena
+        // Generate arena with saved settings
         CreateArena();
 
-        // Create player
+        // Create player with saved settings
         CreatePlayer();
 
         // Create UI
         CreateUI();
 
-        // Create main menu
+        // Create main menu (overlay version for game scene)
         if (showMainMenu)
         {
             CreateMainMenu();
@@ -65,16 +63,19 @@ public class GameBootstrap : MonoBehaviour
 
     void CreateArena()
     {
+        GameSettings settings = GameSettings.Instance;
+
         GameObject arenaObj = new GameObject("Arena");
         ArenaGenerator arena = arenaObj.AddComponent<ArenaGenerator>();
-        arena.arenaWidth = arenaSize;
-        arena.arenaLength = arenaSize;
-        arena.numberOfPillars = pillars;
-        arena.numberOfPlatforms = platforms;
+
+        // Apply saved arena settings
+        settings.ApplyToArena(arena);
     }
 
     void CreatePlayer()
     {
+        GameSettings settings = GameSettings.Instance;
+
         // Player root
         GameObject playerObj = new GameObject("Player");
         playerObj.tag = "Player";
@@ -89,8 +90,9 @@ public class GameBootstrap : MonoBehaviour
 
         // Player Controller
         PlayerController pc = playerObj.AddComponent<PlayerController>();
-        pc.moveSpeed = playerSpeed;
-        pc.mouseSensitivity = mouseSensitivity;
+
+        // Apply saved player settings
+        settings.ApplyToPlayer(pc);
 
         // Camera holder (for vertical look)
         GameObject cameraHolder = new GameObject("CameraHolder");
@@ -115,6 +117,10 @@ public class GameBootstrap : MonoBehaviour
             cam.fieldOfView = 90f;
             cam.nearClipPlane = 0.1f;
             cameraObj.AddComponent<AudioListener>();
+
+            // Add URP camera data for post-processing
+            var cameraData = cameraObj.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+            cameraData.renderPostProcessing = true;
         }
 
         pc.cameraHolder = cameraHolder.transform;
@@ -123,7 +129,9 @@ public class GameBootstrap : MonoBehaviour
         GameObject railgunObj = new GameObject("Railgun");
         railgunObj.transform.SetParent(playerObj.transform);
         Railgun railgun = railgunObj.AddComponent<Railgun>();
-        railgun.cooldown = 1.5f;
+
+        // Apply saved railgun settings
+        settings.ApplyToRailgun(railgun);
 
         // Register player with managers
         SpawnManager sm = FindFirstObjectByType<SpawnManager>();
@@ -145,7 +153,10 @@ public class GameBootstrap : MonoBehaviour
         Canvas canvas = uiObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-        uiObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        UnityEngine.UI.CanvasScaler scaler = uiObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920, 1080);
+
         uiObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
         UIManager uiManager = uiObj.AddComponent<UIManager>();
@@ -160,6 +171,8 @@ public class GameBootstrap : MonoBehaviour
     void CreateMainMenu()
     {
         GameObject menuObj = new GameObject("MainMenu");
-        menuObj.AddComponent<MainMenu>();
+        MainMenu menu = menuObj.AddComponent<MainMenu>();
+        menu.isMenuScene = false; // This is an overlay menu in the game scene
+        menu.gameSceneName = "Game";
     }
 }
