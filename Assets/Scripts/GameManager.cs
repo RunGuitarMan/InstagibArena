@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,8 +12,6 @@ public class GameManager : MonoBehaviour
     [Header("References")]
     public PlayerController player;
     public UIManager uiManager;
-
-    public bool IsGamePaused { get; private set; }
 
     void Awake()
     {
@@ -41,17 +38,9 @@ public class GameManager : MonoBehaviour
             uiManager = FindFirstObjectByType<UIManager>();
         }
 
-        ResumeGame();
-    }
-
-    void Update()
-    {
-        // Pause toggle
-        var keyboard = Keyboard.current;
-        if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-        {
-            TogglePause();
-        }
+        // Lock cursor for gameplay
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void OnEnemyKilled()
@@ -66,7 +55,6 @@ public class GameManager : MonoBehaviour
         uiManager?.UpdateScore(playerKills, playerDeaths);
         uiManager?.ShowDeathMessage();
 
-        // Respawn player after delay
         Invoke(nameof(RespawnPlayer), respawnDelay);
     }
 
@@ -77,51 +65,5 @@ public class GameManager : MonoBehaviour
         Vector3 spawnPos = SpawnManager.Instance?.GetPlayerSpawnPosition() ?? Vector3.up;
         player.Respawn(spawnPos);
         uiManager?.HideDeathMessage();
-    }
-
-    public void TogglePause()
-    {
-        if (IsGamePaused)
-            ResumeGame();
-        else
-            PauseGame();
-    }
-
-    public void PauseGame()
-    {
-        IsGamePaused = true;
-        Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        uiManager?.ShowPauseMenu();
-    }
-
-    public void ResumeGame()
-    {
-        IsGamePaused = false;
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        uiManager?.HidePauseMenu();
-    }
-
-    public void RestartGame()
-    {
-        playerKills = 0;
-        playerDeaths = 0;
-        uiManager?.UpdateScore(0, 0);
-        ResumeGame();
-        UnityEngine.SceneManagement.SceneManager.LoadScene(
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
-        );
-    }
-
-    public void QuitGame()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
     }
 }

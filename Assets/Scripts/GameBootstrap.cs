@@ -9,8 +9,7 @@ public class GameBootstrap : MonoBehaviour
     [Header("Game Settings")]
     public int enemyCount = 5;
     public float enemyAccuracy = 0.08f;
-    public bool showMainMenu = true;
-    public bool isGameScene = true; // Set to false if this is the menu scene
+    public bool isGameScene = true;
 
     void Awake()
     {
@@ -37,12 +36,6 @@ public class GameBootstrap : MonoBehaviour
 
         // Create UI
         CreateUI();
-
-        // Create main menu (overlay version for game scene)
-        if (showMainMenu)
-        {
-            CreateMainMenu();
-        }
 
         Debug.Log("=== INSTAGIB ARENA LOADED ===");
         Debug.Log("Controls: WASD - Move, Mouse - Look, LMB - Fire, Space - Jump, Double-SHIFT - Dash, Esc - Pause");
@@ -166,13 +159,5 @@ public class GameBootstrap : MonoBehaviour
         {
             gm.uiManager = uiManager;
         }
-    }
-
-    void CreateMainMenu()
-    {
-        GameObject menuObj = new GameObject("MainMenu");
-        MainMenu menu = menuObj.AddComponent<MainMenu>();
-        menu.isMenuScene = false; // This is an overlay menu in the game scene
-        menu.gameSceneName = "Game";
     }
 }

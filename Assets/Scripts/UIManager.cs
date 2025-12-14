@@ -11,12 +11,6 @@ public class UIManager : MonoBehaviour
     public Image crosshair;
     public Image cooldownIndicator;
 
-    [Header("Pause Menu")]
-    public GameObject pauseMenuPanel;
-    public Button resumeButton;
-    public Button restartButton;
-    public Button quitButton;
-
     [Header("Settings")]
     public Color crosshairColor = Color.white;
     public float crosshairSize = 4f;
@@ -149,9 +143,6 @@ public class UIManager : MonoBehaviour
             Texture2D circleTexture = CreateCircleTexture(64);
             cooldownIndicator.sprite = Sprite.Create(circleTexture, new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f));
         }
-
-        // Create pause menu
-        SetupPauseMenu();
     }
 
     Texture2D CreateCircleTexture(int size)
@@ -176,94 +167,12 @@ public class UIManager : MonoBehaviour
         return texture;
     }
 
-    void SetupPauseMenu()
-    {
-        if (pauseMenuPanel == null)
-        {
-            pauseMenuPanel = new GameObject("PauseMenu");
-            pauseMenuPanel.transform.SetParent(transform);
-
-            Image panelImage = pauseMenuPanel.AddComponent<Image>();
-            panelImage.color = new Color(0, 0, 0, 0.8f);
-
-            RectTransform panelRect = pauseMenuPanel.GetComponent<RectTransform>();
-            panelRect.anchorMin = Vector2.zero;
-            panelRect.anchorMax = Vector2.one;
-            panelRect.offsetMin = Vector2.zero;
-            panelRect.offsetMax = Vector2.zero;
-
-            // Title
-            GameObject titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(pauseMenuPanel.transform);
-            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.text = "PAUSED";
-            titleText.fontSize = 48;
-            titleText.color = Color.cyan;
-            titleText.alignment = TextAlignmentOptions.Center;
-
-            RectTransform titleRect = titleText.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0.5f, 0.7f);
-            titleRect.anchorMax = new Vector2(0.5f, 0.7f);
-            titleRect.sizeDelta = new Vector2(400, 80);
-            titleRect.anchoredPosition = Vector2.zero;
-
-            // Buttons
-            resumeButton = CreateButton("Resume", new Vector2(0, 50), pauseMenuPanel.transform);
-            restartButton = CreateButton("Restart", new Vector2(0, -20), pauseMenuPanel.transform);
-            quitButton = CreateButton("Quit", new Vector2(0, -90), pauseMenuPanel.transform);
-
-            resumeButton.onClick.AddListener(() => GameManager.Instance?.ResumeGame());
-            restartButton.onClick.AddListener(() => GameManager.Instance?.RestartGame());
-            quitButton.onClick.AddListener(() => GameManager.Instance?.QuitGame());
-        }
-
-        pauseMenuPanel.SetActive(false);
-    }
-
-    Button CreateButton(string text, Vector2 position, Transform parent)
-    {
-        GameObject buttonObj = new GameObject(text + "Button");
-        buttonObj.transform.SetParent(parent);
-
-        Image buttonImage = buttonObj.AddComponent<Image>();
-        buttonImage.color = new Color(0.2f, 0.2f, 0.2f, 1f);
-
-        Button button = buttonObj.AddComponent<Button>();
-        ColorBlock colors = button.colors;
-        colors.highlightedColor = Color.cyan;
-        colors.pressedColor = Color.white;
-        button.colors = colors;
-
-        RectTransform buttonRect = buttonObj.GetComponent<RectTransform>();
-        buttonRect.anchorMin = new Vector2(0.5f, 0.5f);
-        buttonRect.anchorMax = new Vector2(0.5f, 0.5f);
-        buttonRect.sizeDelta = new Vector2(200, 50);
-        buttonRect.anchoredPosition = position;
-
-        GameObject textObj = new GameObject("Text");
-        textObj.transform.SetParent(buttonObj.transform);
-        TextMeshProUGUI buttonText = textObj.AddComponent<TextMeshProUGUI>();
-        buttonText.text = text;
-        buttonText.fontSize = 24;
-        buttonText.color = Color.white;
-        buttonText.alignment = TextAlignmentOptions.Center;
-
-        RectTransform textRect = buttonText.GetComponent<RectTransform>();
-        textRect.anchorMin = Vector2.zero;
-        textRect.anchorMax = Vector2.one;
-        textRect.offsetMin = Vector2.zero;
-        textRect.offsetMax = Vector2.zero;
-
-        return button;
-    }
-
     void UpdateCooldownIndicator()
     {
         if (playerRailgun == null || cooldownIndicator == null) return;
 
         cooldownIndicator.fillAmount = playerRailgun.CooldownPercent;
 
-        // Change color based on ready state
         if (playerRailgun.CanFire)
             cooldownIndicator.color = new Color(0, 1, 1, 0.7f);
         else
@@ -297,17 +206,5 @@ public class UIManager : MonoBehaviour
     {
         if (deathMessageText != null)
             deathMessageText.gameObject.SetActive(false);
-    }
-
-    public void ShowPauseMenu()
-    {
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(true);
-    }
-
-    public void HidePauseMenu()
-    {
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(false);
     }
 }
